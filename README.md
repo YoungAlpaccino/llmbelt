@@ -58,6 +58,21 @@ from llmbelt import retry
 @retry(attempts=5, exceptions=(ConnectionError, TimeoutError))
 def call_api():
     ...   # retried with exponential backoff + jitter on failure
+
+# Works on async functions too — awaited, with non-blocking asyncio.sleep backoff
+@retry(attempts=5, exceptions=(ConnectionError, TimeoutError))
+async def call_api_async():
+    ...
+```
+
+### Extract JSON from a model reply
+
+```python
+from llmbelt import extract_json
+
+extract_json('Sure!\n```json\n{"ok": true}\n```')   # -> {"ok": True}
+extract_json('The score is {"value": 0.9}.')         # -> {"value": 0.9}
+extract_json("no json here", default=None)           # -> None (else raises ValueError)
 ```
 
 ### Prompt templates
@@ -73,10 +88,13 @@ t.render(text="hello")                      # KeyError: Missing template variabl
 ### Chunk text for RAG
 
 ```python
-from llmbelt import chunk_text
+from llmbelt import chunk_text, chunk_by_tokens
 
 chunks = chunk_text(document, chunk_size=1000, overlap=100)
 # overlapping chunks so answers aren't split across a boundary
+
+# Budget by tokens instead of characters (exact with tiktoken installed):
+chunks = chunk_by_tokens(document, chunk_size=500, overlap=50)
 ```
 
 ---
@@ -89,9 +107,11 @@ chunks = chunk_text(document, chunk_size=1000, overlap=100)
 | `estimate_tokens(text)` | Dependency-free heuristic count |
 | `truncate_to_tokens(text, max_tokens, model=None)` | Trim text to a token budget |
 | `estimate_cost(input_tokens, output_tokens, model, pricing=None)` | USD cost estimate |
-| `retry(attempts, base_delay, backoff, jitter, exceptions, ...)` | Backoff retry decorator |
+| `retry(attempts, base_delay, backoff, jitter, exceptions, ...)` | Backoff retry decorator (sync **and** async) |
 | `PromptTemplate(template)` | Templating with missing-variable validation |
-| `chunk_text(text, chunk_size, overlap)` | Overlapping text chunks |
+| `chunk_text(text, chunk_size, overlap)` | Overlapping text chunks (by character) |
+| `chunk_by_tokens(text, chunk_size, overlap, model=None)` | Overlapping text chunks (by token budget) |
+| `extract_json(text, default=...)` | Parse the first JSON value out of an LLM reply |
 
 ---
 

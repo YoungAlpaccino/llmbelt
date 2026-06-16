@@ -1,8 +1,14 @@
+import asyncio
+
 import pytest
 
 from llmbelt import retry
 
 _no_sleep = lambda _: None  # noqa: E731 — avoid real waits in tests
+
+
+async def _no_async_sleep(_):  # avoid real waits in async tests
+    return None
 
 
 def test_succeeds_first_try():
@@ -57,3 +63,36 @@ def test_preserves_function_metadata():
 
     assert my_func.__name__ == "my_func"
     assert my_func.__doc__ == "docstring."
+
+
+def test_async_retries_then_succeeds():
+    calls = []
+
+    @retry(attempts=3, async_sleep=_no_async_sleep)
+    async def f():
+        calls.append(1)
+        if len(calls) < 3:
+            raise ValueError("transient")
+        return "ok"
+
+    assert asyncio.iscoroutinefunction(f)
+    assert asyncio.run(f()) == "ok"
+    assert len(calls) == 3
+
+
+def test_async_exhausts_and_raises():
+    @retry(attempts=2, async_sleep=_no_async_sleep)
+    async def f():
+        raise ValueError("always")
+
+    with pytest.raises(ValueError):
+        asyncio.run(f())
+
+
+def test_async_only_catches_listed_exceptions():
+    @retry(attempts=3, exceptions=(KeyError,), async_sleep=_no_async_sleep)
+    async def f():
+        raise ValueError("not retried")
+
+    with pytest.raises(ValueError):
+        asyncio.run(f())

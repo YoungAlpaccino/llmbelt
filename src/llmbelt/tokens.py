@@ -17,6 +17,24 @@ def estimate_tokens(text: str) -> int:
     return max(1, round(len(text) / _CHARS_PER_TOKEN))
 
 
+def _get_encoding(model: str | None = None):
+    """Return a tiktoken encoding for ``model`` (falling back to cl100k_base).
+
+    Raises ``ImportError`` if tiktoken isn't installed — callers decide whether
+    to fall back to the heuristic path.
+    """
+    import tiktoken
+
+    try:
+        return (
+            tiktoken.encoding_for_model(model)
+            if model
+            else tiktoken.get_encoding("cl100k_base")
+        )
+    except KeyError:
+        return tiktoken.get_encoding("cl100k_base")
+
+
 def count_tokens(text: str, model: str | None = None) -> int:
     """Count tokens in ``text``.
 
@@ -26,18 +44,9 @@ def count_tokens(text: str, model: str | None = None) -> int:
     if not text:
         return 0
     try:
-        import tiktoken
+        enc = _get_encoding(model)
     except ImportError:
         return estimate_tokens(text)
-
-    try:
-        enc = (
-            tiktoken.encoding_for_model(model)
-            if model
-            else tiktoken.get_encoding("cl100k_base")
-        )
-    except KeyError:
-        enc = tiktoken.get_encoding("cl100k_base")
     return len(enc.encode(text))
 
 
