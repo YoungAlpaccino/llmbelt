@@ -85,6 +85,49 @@ t.render(text="hello", language="French")   # "Translate hello into French."
 t.render(text="hello")                      # KeyError: Missing template variables: ['language']
 ```
 
+### Fit a conversation into the context window
+
+```python
+from llmbelt import count_message_tokens, trim_messages
+
+messages = [
+    {"role": "system", "content": "You are concise."},
+    {"role": "user", "content": "..."},
+    # ... a long history ...
+]
+
+count_message_tokens(messages)                      # total tokens of the chat
+trim_messages(messages, max_tokens=8000)            # drop oldest turns, keep the system prompt
+```
+
+### Cache calls so you don't pay twice
+
+```python
+from llmbelt import cached
+
+@cached(ttl=3600)            # remember results for an hour; unhashable args are fine
+def ask(prompt: str):
+    ...                      # identical prompt -> served from cache, no API call
+
+# works on async functions too
+@cached()
+async def ask_async(prompt): ...
+```
+
+### Stay under rate limits
+
+```python
+from llmbelt import RateLimiter
+
+limiter = RateLimiter(rate=60, per=60)   # 60 requests per minute
+
+@limiter                                  # decorator
+def call_api(): ...
+
+with limiter:                             # or a context manager
+    call_api()
+```
+
 ### Chunk text for RAG
 
 ```python
@@ -112,6 +155,10 @@ chunks = chunk_by_tokens(document, chunk_size=500, overlap=50)
 | `chunk_text(text, chunk_size, overlap)` | Overlapping text chunks (by character) |
 | `chunk_by_tokens(text, chunk_size, overlap, model=None)` | Overlapping text chunks (by token budget) |
 | `extract_json(text, default=...)` | Parse the first JSON value out of an LLM reply |
+| `count_message_tokens(messages, model=None)` | Token count of a chat-format message list |
+| `trim_messages(messages, max_tokens, model=None, keep_system=True)` | Trim a conversation to a token budget |
+| `cached(maxsize, ttl)` | Memoize calls on an args hash (sync + async) |
+| `RateLimiter(rate, per, capacity=None)` | Token-bucket throttle (gate / context manager / decorator) |
 
 ---
 

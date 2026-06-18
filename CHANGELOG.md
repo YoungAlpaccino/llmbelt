@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/), and this project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-06-18
+
+### Added
+- `count_message_tokens` / `trim_messages` — measure a chat-format conversation and trim it to fit a context window, always keeping the system prompt and preserving order.
+- `cached` — decorator that memoizes a function on a hash of its arguments (unhashable args OK), with optional `ttl` and `maxsize`; works on sync and `async def` functions. Stops you re-paying for identical LLM calls.
+- `RateLimiter` — thread-safe token-bucket throttle to stay under provider requests-per-minute limits; usable as a gate, context manager, or decorator.
+
 ## [0.2.0] - 2026-06-15
 
 ### Added

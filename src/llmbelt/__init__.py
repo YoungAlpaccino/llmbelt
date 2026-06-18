@@ -1,27 +1,35 @@
 """llmbelt — a tiny, dependency-free tool belt for working with LLMs.
 
 Token counting, cost estimation, retries with backoff, prompt templating, text
-chunking, and JSON extraction — the small utilities you re-write on every LLM
-project, in one import with zero required dependencies.
+chunking, JSON extraction, conversation budgeting, caching, and rate limiting —
+the small utilities you re-write on every LLM project, in one import with zero
+required dependencies.
 """
 
+from llmbelt.cache import cached
 from llmbelt.chunk import chunk_by_tokens, chunk_text
 from llmbelt.cost import PRICING, Price, estimate_cost
 from llmbelt.extract import extract_json
+from llmbelt.messages import count_message_tokens, trim_messages
 from llmbelt.prompt import PromptTemplate
+from llmbelt.ratelimit import RateLimiter
 from llmbelt.retry import retry
 from llmbelt.tokens import count_tokens, estimate_tokens, truncate_to_tokens
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
+    "cached",
     "chunk_text",
     "chunk_by_tokens",
     "PRICING",
     "Price",
     "estimate_cost",
     "extract_json",
+    "count_message_tokens",
+    "trim_messages",
     "PromptTemplate",
+    "RateLimiter",
     "retry",
     "count_tokens",
     "estimate_tokens",
