@@ -187,3 +187,4 @@ twine upload dist/*
 ## License
 
 MIT — see [LICENSE](./LICENSE). Use it anywhere, including commercially.
+
