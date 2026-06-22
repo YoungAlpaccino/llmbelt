@@ -51,3 +51,58 @@ def estimate_cost(
         input_tokens / 1_000_000 * p.input_per_1m
         + output_tokens / 1_000_000 * p.output_per_1m
     )
+
+
+@dataclass
+class CostTracker:
+    """Accumulate token usage and USD cost across many calls.
+
+    Drop one in your app and call :meth:`add` after each LLM response to keep a
+    running total — handy for budgeting an agent loop, a batch job, or an eval.
+
+    Example::
+
+        tracker = CostTracker()
+        tracker.add(1_500, 800, "gpt-4o-mini")
+        tracker.add(2_000, 1_200, "gpt-4o-mini")
+        print(tracker)            # "2 calls, 5,500 tokens, $0.0019"
+        tracker.summary()         # dict with the breakdown
+    """
+
+    pricing: dict[str, Price] | None = None
+    calls: int = 0
+    input_tokens: int = 0
+    output_tokens: int = 0
+    cost: float = 0.0
+
+    def add(self, input_tokens: int, output_tokens: int, model: str) -> float:
+        """Record one call and return its cost (also added to the running total)."""
+        call_cost = estimate_cost(input_tokens, output_tokens, model, self.pricing)
+        self.calls += 1
+        self.input_tokens += input_tokens
+        self.output_tokens += output_tokens
+        self.cost += call_cost
+        return call_cost
+
+    @property
+    def total_tokens(self) -> int:
+        return self.input_tokens + self.output_tokens
+
+    def reset(self) -> None:
+        """Zero the running totals (keeps the configured ``pricing``)."""
+        self.calls = 0
+        self.input_tokens = 0
+        self.output_tokens = 0
+        self.cost = 0.0
+
+    def summary(self) -> dict[str, float | int]:
+        return {
+            "calls": self.calls,
+            "input_tokens": self.input_tokens,
+            "output_tokens": self.output_tokens,
+            "total_tokens": self.total_tokens,
+            "cost_usd": self.cost,
+        }
+
+    def __str__(self) -> str:
+        return f"{self.calls} calls, {self.total_tokens:,} tokens, ${self.cost:.4f}"

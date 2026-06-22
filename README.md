@@ -131,13 +131,29 @@ with limiter:                             # or a context manager
 ### Chunk text for RAG
 
 ```python
-from llmbelt import chunk_text, chunk_by_tokens
+from llmbelt import chunk_text, chunk_by_tokens, split_text
 
 chunks = chunk_text(document, chunk_size=1000, overlap=100)
 # overlapping chunks so answers aren't split across a boundary
 
 # Budget by tokens instead of characters (exact with tiktoken installed):
 chunks = chunk_by_tokens(document, chunk_size=500, overlap=50)
+
+# Smarter: break on paragraph/sentence/word boundaries instead of mid-word
+chunks = split_text(document, chunk_size=1000, overlap=100)
+```
+
+### Track spend across calls
+
+```python
+from llmbelt import CostTracker
+
+tracker = CostTracker()
+tracker.add(input_tokens=1_500, output_tokens=800, model="gpt-4o-mini")
+tracker.add(2_000, 1_200, "gpt-4o-mini")
+
+print(tracker)          # "2 calls, 5,500 tokens, $0.0019"
+tracker.summary()       # {"calls": 2, "input_tokens": ..., "cost_usd": ...}
 ```
 
 ---
@@ -150,10 +166,12 @@ chunks = chunk_by_tokens(document, chunk_size=500, overlap=50)
 | `estimate_tokens(text)` | Dependency-free heuristic count |
 | `truncate_to_tokens(text, max_tokens, model=None)` | Trim text to a token budget |
 | `estimate_cost(input_tokens, output_tokens, model, pricing=None)` | USD cost estimate |
+| `CostTracker(pricing=None)` | Accumulate tokens + USD cost across many calls |
 | `retry(attempts, base_delay, backoff, jitter, exceptions, ...)` | Backoff retry decorator (sync **and** async) |
 | `PromptTemplate(template)` | Templating with missing-variable validation |
 | `chunk_text(text, chunk_size, overlap)` | Overlapping text chunks (by character) |
 | `chunk_by_tokens(text, chunk_size, overlap, model=None)` | Overlapping text chunks (by token budget) |
+| `split_text(text, chunk_size, overlap, separators=None)` | Boundary-aware chunks (paragraph/sentence/word) |
 | `extract_json(text, default=...)` | Parse the first JSON value out of an LLM reply |
 | `count_message_tokens(messages, model=None)` | Token count of a chat-format message list |
 | `trim_messages(messages, max_tokens, model=None, keep_system=True)` | Trim a conversation to a token budget |

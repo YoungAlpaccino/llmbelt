@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/), and this project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] - 2026-06-22
+
+### Added
+- `split_text` — recursive, boundary-aware text splitter that prefers to break on paragraph → line → sentence → word boundaries (falling back to a hard cut only when a single token exceeds `chunk_size`), with character overlap. Produces cleaner RAG chunks than the fixed-offset `chunk_text`.
+- `CostTracker` — accumulate calls, input/output tokens, and USD cost across many requests; `.add()`, `.summary()`, `.reset()`, `total_tokens`, and a readable `str()`.
+
 ## [0.3.0] - 2026-06-18
 
 ### Added
