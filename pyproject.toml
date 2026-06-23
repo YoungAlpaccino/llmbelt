@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "llmbelt"
-version = "0.4.0"
+version = "0.6.0"
 description = "A tiny, dependency-free tool belt for LLMs: token counting, cost estimation, retries, prompt templates, and text chunking."
 readme = "README.md"
 requires-python = ">=3.9"

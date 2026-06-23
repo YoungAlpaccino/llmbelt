@@ -26,6 +26,29 @@ pip install "llmbelt[tiktoken]"
 
 ## Usage
 
+### Configure from the environment
+
+```python
+from llmbelt import get_api_key, load_dotenv, EnvConfig, llm_settings_from_env
+
+load_dotenv()                          # zero-dep .env loader (no override by default)
+key = get_api_key("openai")            # reads OPENAI_API_KEY (+ known aliases)
+settings = llm_settings_from_env()     # {api_key, model, base_url, temperature, ...}
+
+# Declarative, typed config straight from the environment:
+class Settings(EnvConfig):
+    __prefix__ = "APP_"
+    api_key: str                       # required (no default) -> clear EnvError if unset
+    timeout: float = 30.0
+    debug: bool = False
+
+cfg = Settings.from_env()              # reads APP_API_KEY, APP_TIMEOUT, APP_DEBUG
+```
+
+Also included: `env_str/int/float/bool/list`, `require_env`, `mask_secret`,
+`EnvNamespace`, `expand`/`resolve_layers` (`${VAR}` interpolation),
+`env_template` (generate a `.env.example`), and `snapshot_env`/`freeze_env`.
+
 ### Count tokens
 
 ```python
@@ -100,6 +123,31 @@ count_message_tokens(messages)                      # total tokens of the chat
 trim_messages(messages, max_tokens=8000)            # drop oldest turns, keep the system prompt
 ```
 
+### Manage a chat with a self-trimming history
+
+```python
+from llmbelt import Conversation
+
+chat = Conversation(system="You are concise.", max_tokens=8000)
+chat.user("Hello!")
+chat.assistant("Hi — how can I help?")
+
+response = client.chat(messages=chat.messages)   # plug into any SDK; auto-trims as it grows
+```
+
+### Redact PII before sending to an LLM
+
+```python
+from llmbelt import redact, find_pii
+
+redact("email jane@acme.com or call 555-123-4567")
+# -> "email [EMAIL] or call [PHONE]"
+
+find_pii("card 4111 1111 1111 1111")   # -> [("CREDIT_CARD", "4111 1111 1111 1111")]
+```
+
+> Best-effort regex redaction — a guardrail, not a compliance guarantee. Extend `DEFAULT_PII_PATTERNS` for your own data.
+
 ### Cache calls so you don't pay twice
 
 ```python
@@ -162,6 +210,16 @@ tracker.summary()       # {"calls": 2, "input_tokens": ..., "cost_usd": ...}
 
 | Function | Description |
 |---|---|
+| `get_env / env_str / env_int / env_float / env_bool / env_list` | Typed environment readers (defaults, `required`, casting) |
+| `get_api_key(provider)` / `has_api_key` / `available_providers` | Resolve LLM provider API keys from env |
+| `load_dotenv / parse_dotenv / find_dotenv` | Zero-dependency `.env` loader |
+| `require_env` / `mask_secret` / `env_report` | Fail-fast validation + secret-safe reporting |
+| `EnvConfig` | Declarative typed config from the environment |
+| `EnvNamespace` / `collect_prefixed` | Group prefixed variables into one object/dict |
+| `expand` / `resolve_layers` | `${VAR}` interpolation + layered resolution |
+| `llm_settings_from_env(provider)` | Assemble an LLM client config from env |
+| `env_template` / `env_template_from_config` | Generate a `.env.example` |
+| `snapshot_env` / `diff_env` / `freeze_env` / `FrozenEnv` | Snapshot, diff, freeze env config |
 | `count_tokens(text, model=None)` | Exact (tiktoken) or estimated token count |
 | `estimate_tokens(text)` | Dependency-free heuristic count |
 | `truncate_to_tokens(text, max_tokens, model=None)` | Trim text to a token budget |
@@ -175,6 +233,9 @@ tracker.summary()       # {"calls": 2, "input_tokens": ..., "cost_usd": ...}
 | `extract_json(text, default=...)` | Parse the first JSON value out of an LLM reply |
 | `count_message_tokens(messages, model=None)` | Token count of a chat-format message list |
 | `trim_messages(messages, max_tokens, model=None, keep_system=True)` | Trim a conversation to a token budget |
+| `Conversation(system=None, max_tokens=None, model=None)` | Stateful chat history that self-trims to a budget |
+| `redact(text, patterns=None, mask="[{label}]")` | Mask PII/secrets in text |
+| `find_pii(text, patterns=None)` | List `(label, match)` PII detections |
 | `cached(maxsize, ttl)` | Memoize calls on an args hash (sync + async) |
 | `RateLimiter(rate, per, capacity=None)` | Token-bucket throttle (gate / context manager / decorator) |
 
