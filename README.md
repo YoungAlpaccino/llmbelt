@@ -24,6 +24,20 @@ pip install "llmbelt[tiktoken]"
 
 ---
 
+## Command line
+
+```bash
+python -m llmbelt --help          # or the installed `llmbelt` command
+
+llmbelt tokens "Hello, world!"               # -> token count
+echo "long text" | llmbelt tokens -          # read from stdin
+llmbelt cost --in 1500 --out 800 -m gpt-4o-mini   # -> $0.000630
+llmbelt redact "email a@b.com"               # -> "email [EMAIL]"
+llmbelt env check OPENAI_API_KEY             # exit 1 + message if unset
+llmbelt env report OPENAI_API_KEY            # masked value report
+llmbelt env keys                             # providers with a key set
+```
+
 ## Usage
 
 ### Configure from the environment

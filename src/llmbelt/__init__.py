@@ -42,7 +42,7 @@ from llmbelt.redact import DEFAULT_PII_PATTERNS, find_pii, redact
 from llmbelt.retry import retry
 from llmbelt.tokens import count_tokens, estimate_tokens, truncate_to_tokens
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
 __all__ = [
     "cached",

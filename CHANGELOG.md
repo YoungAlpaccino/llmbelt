@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/), and this project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.7.0] - 2026-06-29
+
+### Added
+- **Command-line interface** — run `python -m llmbelt` or the installed `llmbelt` command:
+  - `llmbelt tokens [TEXT|-] [-m MODEL]` — count tokens (reads stdin with `-`).
+  - `llmbelt cost --in N --out N -m MODEL` — estimate USD cost.
+  - `llmbelt redact [TEXT|-]` — mask PII/secrets.
+  - `llmbelt env report NAMES… [--no-mask]` / `env check NAMES…` / `env keys` — inspect environment config (masked report, fail-fast check, list providers with a key set).
+  - `llmbelt --version`.
+- `llmbelt` console-script entry point (`[project.scripts]`).
+
 ## [0.6.0] - 2026-06-23
 
 ### Added — first-class environment-variable configuration

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "llmbelt"
-version = "0.6.0"
+version = "0.7.0"
 description = "A tiny, dependency-free tool belt for LLMs: token counting, cost estimation, retries, prompt templates, and text chunking."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -29,6 +29,9 @@ dependencies = []
 [project.optional-dependencies]
 tiktoken = ["tiktoken>=0.5"]
 dev = ["pytest>=7", "ruff", "build", "twine"]
+
+[project.scripts]
+llmbelt = "llmbelt.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/YoungAlpaccino/llmbelt"
